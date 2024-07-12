@@ -12,30 +12,33 @@ void picorgb_init(PicoRGBConfig * config, PIO pio, uint pin) {
     uint offset = pio_add_program(pio, &ws2812_program);
     uint sm = pio_claim_unused_sm(pio, true);
     ws2812_program_init(pio, sm, offset, pin, PIO_FREQ, IS_RGBW);
-    RGB zero = RGB(0, 0, 0);
     config->pio = pio;
     config->sm = sm;
     config->enabled = true;
     config->brightness = 100;
-    config->color = zero;
+    config->color = RGB(0, 0, 0);
     return;
 }
 
 void picorgb_setcolor(PicoRGBConfig *config, RGB color) {
+    
     // Set config color to current color
     config->color.r = color.r;
     config->color.g = color.g;
     config->color.b = color.b;
 
-    // Skip setting color if brightness is 0 or if not enabled
-    if (config->brightness == 0 || !config->enabled) return;
+    // Skip setting color if not enabled
+    if (!config->enabled) return;
     // If brightness is scaled, scale colors to simulate brightness
     if (config->brightness != 100) {
         float scalar = config->brightness / 100.0f;
-        color.r *= scalar;
-        color.g *= scalar;
-        color.b *= scalar;
+        color.r = (uint8_t) ((float) color.r * scalar);
+        color.g = (uint8_t) ((float) color.g * scalar);
+        color.b = (uint8_t) ((float) color.b * scalar);
+    } else if (config->brightness == 0) {
+        return pio_sm_put_blocking(config->pio, config->sm, (uint32_t) 0);
     }
+
     uint32_t pixel = rgb_to_32(color);
     pio_sm_put_blocking(config->pio, config->sm, pixel);
 }
@@ -45,9 +48,6 @@ void picorgb_setbrightness(PicoRGBConfig * config, uint8_t percent) {
         percent = 100;
     }
     config->brightness = percent;
-    if (percent != 100 && config->enabled) {
-        picorgb_setcolor(config, config->color);
-    }
 }
 
 void picorgb_setenabled(PicoRGBConfig *config, bool enabled) {

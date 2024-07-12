@@ -1,3 +1,5 @@
+#include "hardware/pio.h"
+
 #define RGB(R, G, B) \
     (RGB) { .r = R, .g = G, .b = B }
 #define PIO_FREQ 800000
