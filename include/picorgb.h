@@ -25,12 +25,17 @@ typedef struct
     bool enabled;
     uint8_t brightness;
     RGB color;
+    uint16_t chain_length;
+    uint16_t skip_start;
+    uint16_t skip_end;
 } PicoRGBConfig;
 
-void picorgb_init(PicoRGBConfig *config, PIO pio, uint pin);
+void picorgb_init(PicoRGBConfig *config, PIO pio, uint pin, uint16_t length);
 
 void picorgb_setcolor(PicoRGBConfig *config, RGB color);
 
 void picorgb_setbrightness(PicoRGBConfig *config, uint8_t percent);
 
 void picorgb_setenabled(PicoRGBConfig *config, bool enabled);
+
+void picorgb_setchain(PicoRGBConfig *config, uint16_t chain_length, uint16_t skip_start, uint16_t skip_end);
